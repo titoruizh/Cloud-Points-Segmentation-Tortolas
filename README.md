@@ -7,7 +7,7 @@
 
 ---
 
-Proyecto de investigación y desarrollo enfocado en la segmentación semántica automática de nubes de puntos fotogramétricas a gran escala (Minería/Obra Civil). El objetivo principal es la clasificación precisa de **Maquinaria Pesada** vs **Terreno** en entornos complejos.
+Proyecto de investigación y desarrollo enfocado en la segmentación semántica automática de nubes de puntos fotogramétricas a gran escala (Minería/Obra Civil). El objetivo principal es la clasificación precisa de **Maquinaria Pesada** vs **Terreno** en entornos complejos para posteriormente en postprocesso realizar un 'Bulldozer' de los puntos clasificados y obtener terreno limpio DTM sin objetos de manera automatizada.
 
 ## 🏆 Selección del Modelo: ¿Por qué PointNet++?
 Inicialmente exploramos arquitecturas como **RandLa-Net** por su eficiencia en "Large Scale". Sin embargo, nuestras pruebas comparativas demostraron que **PointNet++ (MSG - Multi-Scale Grouping)** ofrece una capacidad superior para capturar detalles geométricos finos en maquinaria compleja (suspensiones, cabinas, brazos hidráulicos) que RandLa-Net tendía a suavizar excesivamente.
