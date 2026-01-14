@@ -7,7 +7,7 @@
 
 ---
 
-Proyecto de investigación y desarrollo enfocado en la segmentación semántica automática de nubes de puntos fotogramétricas a gran escala (Minería/Obra Civil). El objetivo principal es la clasificación precisa de **Maquinaria Pesada** vs **Terreno** en entornos complejos para posteriormente en postprocesso realizar un 'Bulldozer' de los puntos clasificados y obtener terreno limpio DTM sin objetos de manera automatizada.
+Proyecto de investigación y desarrollo enfocado en la segmentación semántica automática de nubes de puntos fotogramétricas a gran escala en minería. El objetivo principal es la clasificación precisa de **Maquinaria Pesada** vs **Terreno** en entornos complejos para posteriormente en postprocesso realizar un 'Bulldozer' de los puntos clasificados y obtener terreno limpio DTM sin objetos de manera automatizada.
 
 ## 📐 Arquitectura y Metodología Técnica
 
