@@ -15,22 +15,34 @@ Aunque RandLa-Net presentaba ventajas de velocidad teórica, la prioridad de est
 
 ## 🔬 Evolución Técnica e Innovación
 
-El núcleo del éxito del proyecto reside en dos iteraciones críticas de ingeniería de datos detalladas en nuestros reportes técnicos:
+El núcleo del éxito del proyecto reside en dos iteraciones críticas de ingeniería de datos, donde refinamos la interacción entre la geometría 3D y el aprendizaje profundo:
 
-### V5: Geometric Purification (Verticality Ablation) 📉
-En la versión 5, desafiamos la intuición común de usar la "Verticalidad" (Normal Z) como feature explicita.
-*   **El Problema:** El modelo aprendía atajos falsos ("Pared = Máquina", "Plano = Suelo"), fallando estrepitosamente en **techos de contenedores** (planos pero máquinas) o **muros de contención** (verticales pero suelo).
-*   **La Solución:** Eliminamos explícitamente la feature de verticalidad del input (`d_in=9`: XYZ + RGB + Normals). Forzamos a la red a aprender la **morfología 3D pura** y el contexto geométrico en lugar de depender de la orientación simple de la normal.
-*   **Resultado:** Drástica reducción de falsos positivos en techos, contenedores y pretiles.
+### 📉 V5: Geometric Purification (Verticality Ablation)
+En la versión 5, desafiamos la intuición común de usar la "Verticalidad" (Normal Z) como feature explícita.
 
-> ![Insertar aquí imagen comparativa: Clasificación incorrecta de techos en V4 vs Corrección exitosa en V5]
+* **El Problema:** El modelo aprendía atajos falsos ("Pared = Máquina", "Plano = Suelo"), fallando en **techos de contenedores** (planos pero máquinas) o **muros de contención** (verticales pero suelo).
+* **La Solución:** Eliminamos la feature de verticalidad del input (`d_in=9` → `XYZ + RGB + Normals`). Forzamos a la red a aprender la **morfología 3D pura** y el contexto geométrico local en lugar de depender de la orientación simple de la normal.
+* **Resultado:** Drástica reducción de falsos positivos en estructuras ambiguas (pretiles y contenedores).
 
-### V6: Resolution Sync (0.25m Production Match) 📐
+### 📐 V6: Resolution Sync (0.25m Production Match)
 Detectamos un "Domain Gap" silencioso: entrenábamos con nubes densas (sub-sampling a 0.10m) pero inferíamos en nubes mensuales de producción más ligeras (0.25m).
-*   **Ajuste:** Recalibramos todo el pipeline de entrenamiento para operar nativamente a **0.25m**, alineando la distribución de datos de train con la realidad de producción.
-*   **Optimización:** Redujimos los puntos de muestreo por bloque de 10,000 a **2,048**. Esto no solo aceleró el entrenamiento, sino que eliminó el ruido generado por buscar "micro-texturas" que no existen en las nubes de fotogrametría mensual.
 
-> ![Insertar aquí imagen: Visualización de la densidad de puntos a 0.25m con un bloque de 10x10m]
+* **Ajuste:** Recalibramos el pipeline de entrenamiento para operar nativamente a **0.25m**, alineando la distribución de datos de *train* con la realidad de *producción*.
+* **Optimización:** Redujimos los puntos de muestreo por bloque de 10,000 a **2,048**. Esto aceleró el entrenamiento y eliminó el ruido generado por buscar "micro-texturas" inexistentes en fotogrametría mensual.
+
+---
+
+### 📸 Comparativa Visual
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/fe48377a-706e-4325-b9b9-61fedec29dfb" width="32%" alt="Visual 1" />
+  <img src="https://github.com/user-attachments/assets/8b470eea-c02c-4e34-8a1a-461d20a1f672" width="32%" alt="Visual 2" />
+  <img src="https://github.com/user-attachments/assets/a3bd5f06-ee67-4057-9d37-b31bc674509c" width="32%" alt="Visual 3" />
+</p>
+<p align="center">
+  <em>Evolución de la detección: Visualización de las mejoras en segmentación tras aplicar V5 y V6.</em>
+</p>
+
 
 ---
 
