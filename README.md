@@ -1,8 +1,11 @@
-# 🌩️ Cloud Point Research: Segmentation AI for Large Scale Photogrammetry
+# 🌩️ GeoAI: Large Scale Point Cloud Segmentation
+### Automated Mining Asset Detection via Deep Learning
 
-> **Estado:** Producción (V6 Resolution Sync)
-> **Stack:** PyTorch | PointNet++ | CUDA Optimized
-> **Hardware:** NVIDIA RTX 5090
+![Status](https://img.shields.io/badge/Status-Production_V6-success?style=for-the-badge)
+![Tech](https://img.shields.io/badge/Stack-PyTorch_%7C_CUDA-orange?style=for-the-badge&logo=pytorch)
+![Hardware](https://img.shields.io/badge/Hardware-NVIDIA_RTX_5090-black?style=for-the-badge&logo=nvidia)
+
+---
 
 Proyecto de investigación y desarrollo enfocado en la segmentación semántica automática de nubes de puntos fotogramétricas a gran escala (Minería/Obra Civil). El objetivo principal es la clasificación precisa de **Maquinaria Pesada** vs **Terreno** en entornos complejos.
 
@@ -40,7 +43,7 @@ Detectamos un "Domain Gap" silencioso: entrenábamos con nubes densas (sub-sampl
   <img src="https://github.com/user-attachments/assets/a3bd5f06-ee67-4057-9d37-b31bc674509c" width="32%" alt="Visual 3" />
 </p>
 <p align="center">
-  <em>Evolución de la detección: Visualización de las mejoras en segmentación tras aplicar V5 y V6.</em>
+  <em>Vista Planta Ortomosaico | Vista Planta Nube de puntos RGB | Vista 3D Nube de puntos Clasificada</em>
 </p>
 
 
