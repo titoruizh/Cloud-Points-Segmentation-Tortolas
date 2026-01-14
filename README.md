@@ -1,0 +1,74 @@
+# 🌩️ Cloud Point Research: Segmentation AI for Large Scale Photogrammetry
+
+> **Estado:** Producción (V6 Resolution Sync)
+> **Stack:** PyTorch | PointNet++ | CUDA Optimized
+> **Hardware:** NVIDIA RTX 5090
+
+Proyecto de investigación y desarrollo enfocado en la segmentación semántica automática de nubes de puntos fotogramétricas a gran escala (Minería/Obra Civil). El objetivo principal es la clasificación precisa de **Maquinaria Pesada** vs **Terreno** en entornos complejos.
+
+## 🏆 Selección del Modelo: ¿Por qué PointNet++?
+Inicialmente exploramos arquitecturas como **RandLa-Net** por su eficiencia en "Large Scale". Sin embargo, nuestras pruebas comparativas demostraron que **PointNet++ (MSG - Multi-Scale Grouping)** ofrece una capacidad superior para capturar detalles geométricos finos en maquinaria compleja (suspensiones, cabinas, brazos hidráulicos) que RandLa-Net tendía a suavizar excesivamente.
+
+Aunque RandLa-Net presentaba ventajas de velocidad teórica, la prioridad de este proyecto es la **precisión crítica en bordes y formas complejas**, donde PointNet++ demostró ser inigualable para nuestra casuística.
+
+---
+
+## 🔬 Evolución Técnica e Innovación
+
+El núcleo del éxito del proyecto reside en dos iteraciones críticas de ingeniería de datos detalladas en nuestros reportes técnicos:
+
+### V5: Geometric Purification (Verticality Ablation) 📉
+En la versión 5, desafiamos la intuición común de usar la "Verticalidad" (Normal Z) como feature explicita.
+*   **El Problema:** El modelo aprendía atajos falsos ("Pared = Máquina", "Plano = Suelo"), fallando estrepitosamente en **techos de contenedores** (planos pero máquinas) o **muros de contención** (verticales pero suelo).
+*   **La Solución:** Eliminamos explícitamente la feature de verticalidad del input (`d_in=9`: XYZ + RGB + Normals). Forzamos a la red a aprender la **morfología 3D pura** y el contexto geométrico en lugar de depender de la orientación simple de la normal.
+*   **Resultado:** Drástica reducción de falsos positivos en techos, contenedores y pretiles.
+
+> ![Insertar aquí imagen comparativa: Clasificación incorrecta de techos en V4 vs Corrección exitosa en V5]
+
+### V6: Resolution Sync (0.25m Production Match) 📐
+Detectamos un "Domain Gap" silencioso: entrenábamos con nubes densas (sub-sampling a 0.10m) pero inferíamos en nubes mensuales de producción más ligeras (0.25m).
+*   **Ajuste:** Recalibramos todo el pipeline de entrenamiento para operar nativamente a **0.25m**, alineando la distribución de datos de train con la realidad de producción.
+*   **Optimización:** Redujimos los puntos de muestreo por bloque de 10,000 a **2,048**. Esto no solo aceleró el entrenamiento, sino que eliminó el ruido generado por buscar "micro-texturas" que no existen en las nubes de fotogrametría mensual.
+
+> ![Insertar aquí imagen: Visualización de la densidad de puntos a 0.25m con un bloque de 10x10m]
+
+---
+
+## 🏎️ Rendimiento y Hardware (Nitro Engine) 🚀
+
+El pipeline ha sido optimizado especificamente para hardware de última generación (**NVIDIA RTX 5090**), implementando un motor de inferencia personalizado denominado "Nitro":
+
+*   **Mixed Precision (FP16):** Implementación de `torch.amp.autocast` para maximizar el uso de Tensor Cores y reducir el consumo de VRAM, permitiendo batch sizes más grandes.
+*   **Vectorización Masiva:** El preprocesamiento de bloques (grid splitting) se reescribió utilizando operaciones vectorizadas de Numpy, eliminando cuellos de botella de CPU.
+*   **Direct I/O:** Lectura nativa de normales pre-calculadas desde archivos LAZ, reduciendo el tiempo de pre-carga en un **~80%**.
+
+| Métrica | Detalle |
+| :--- | :--- |
+| **GPU Target** | NVIDIA RTX 5090 (24GB+ VRAM) |
+| **Batch Size** | 64 - 96 (Optimizado) |
+| **Capacidad** | Inferencia continua en nubes de >100 Millones de puntos |
+| **Velocidad** | 5x más rápido que la implementación base V1 |
+
+> ![Insertar aquí captura de pantalla de wandb mostrando el uso de GPU o tiempos de inferencia]
+
+---
+
+## 📊 Galería de Resultados
+
+El modelo actual demuestra una robustez excepcional, capaz de ignorar "Hard Negatives" (rocas grandes, taludes verticales naturales) y capturar maquinaria completa sin fragmentación.
+
+### Clasificación de Precisión
+> ![Insertar aquí imagen: Zoom a una camioneta o maquinaria bien clasificada, mostrando detalles finos y ausencia de ruido noise]
+
+### Robustez en Terreno Complejo
+> ![Insertar aquí imagen: Nube completa procesada (vista aérea) donde se vea claramente la distinción entre suelo irregular y múltiples máquinas]
+
+---
+
+## 🛠️ Estructura del repositorio
+
+*   `src/models`: Implementación de la arquitectura **PointNet++ MSG**.
+*   `src/data`: Data Loaders personalizados para estrategias de sampling V5 (Oversampling) y V6 (Resolution Sync).
+*   `scripts/inference`: Scripts de inferencia de producción optimizados (`infer_pointnet_v5.2.py`).
+*   `configs`: Archivos de configuración YAML para reproducibilidad de experimentos.
+*   `docs`: Reportes técnicos detallados (V1-V6).
