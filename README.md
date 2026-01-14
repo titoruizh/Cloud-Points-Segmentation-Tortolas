@@ -56,7 +56,7 @@ El despliegue productivo se ejecuta sobre una estación de trabajo **NVIDIA RTX 
 | Recurso | Especificación |
 | :--- | :--- |
 | **Compute** | NVIDIA RTX 5090 (24GB GDDR6X) |
-| **Throughput** | ~120 Millones de puntos / minuto |
+| **Throughput** | ~120 M points x min |
 | **Batch Strategy** | Dynamic Batching (64-96 bloques) |
 | **Precision** | FP16/FP32 Mixed Mode |
 
