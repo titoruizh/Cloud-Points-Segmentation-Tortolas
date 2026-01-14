@@ -49,7 +49,8 @@ El pipeline ha sido optimizado especificamente para hardware de última generaci
 | **Capacidad** | Inferencia continua en nubes de >100 Millones de puntos |
 | **Velocidad** | 5x más rápido que la implementación base V1 |
 
-> ![Insertar aquí captura de pantalla de wandb mostrando el uso de GPU o tiempos de inferencia]
+> <img width="1397" height="75" alt="image" src="https://github.com/user-attachments/assets/ac5f9fa1-14ff-4a6c-93aa-a5f714399614" />
+
 
 ---
 
@@ -58,10 +59,15 @@ El pipeline ha sido optimizado especificamente para hardware de última generaci
 El modelo actual demuestra una robustez excepcional, capaz de ignorar "Hard Negatives" (rocas grandes, taludes verticales naturales) y capturar maquinaria completa sin fragmentación.
 
 ### Clasificación de Precisión
-> ![Insertar aquí imagen: Zoom a una camioneta o maquinaria bien clasificada, mostrando detalles finos y ausencia de ruido noise]
+> <img width="1269" height="584" alt="image" src="https://github.com/user-attachments/assets/5d128d28-6e47-4f20-b6fb-91a126d0c464" />
+<img width="1328" height="620" alt="image" src="https://github.com/user-attachments/assets/55eed393-e1b1-4da2-bca8-01e6df7d830e" />
+
 
 ### Robustez en Terreno Complejo
-> ![Insertar aquí imagen: Nube completa procesada (vista aérea) donde se vea claramente la distinción entre suelo irregular y múltiples máquinas]
+> <img width="1268" height="426" alt="image" src="https://github.com/user-attachments/assets/7ae3afa1-2cce-4400-9385-eaad264debc5" />
+<img width="1228" height="419" alt="image" src="https://github.com/user-attachments/assets/e4b68bc7-60f0-4031-92dd-38244e113758" />
+
+
 
 ---
 
