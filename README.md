@@ -13,6 +13,14 @@ Proyecto de investigación y desarrollo enfocado en la segmentación semántica 
 
 Tras exhaustivas pruebas comparativas (Benchmark V1-V4), la solución final cristalizó en una variante optimizada de **PointNet++ MSG (Multi-Scale Grouping)**. Esta arquitectura demostró una superioridad crítica en la captura de **topologías finas** (brazos hidráulicos, suspensiones) frente a alternativas como RandLa-Net.
 
+| Versión | Configuración Ganadora (LR / Weights / Radius) | IoU Maquinaria (Val) | mIoU (Val) | Accuracy Global | Notas Técnicas |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **V2 (Robust)** | `LR: 0.0047` / `W: 10` / `R: 2.5m` | 73.77% | 81.87% | 94.46% | Configuración base robusta. Inicio de experimentación. |
+| **V3** | `LR: 0.0040` / `W: 10` / `R: 5.0m` | 69.81% | 79.69% | 95.66% | Variación de radios. Rendimiento inferior a V2. |
+| **V4 (RGB)** | `LR: 0.0010` / `W: 20` / `R: 3.5m` | 83.64% | 88.51% | 98.63% | **Salto Cuántico.** Inclusión de canales RGB (d_in=10). Gran mejora. |
+| **V5 (No-Vert)** | `LR: 0.0010` / `W: 20` / `R: 3.5m` | **87.75%** | **92.95%** | **98.67%** | **Optimización.** Eliminación de canal verticalidad explícito (d_in=9). Menor ruido. |
+| **V6 (0.25m)** | `LR: 0.0010` / `W: 15` / `R: 3.5m` | **88.85%** | **93.06%** | **98.61%** | **Definitiva (Resolution Sync).** Entrenamiento a densidad real (2048 pts) igualando producción. Máxima generalización. |
+
 ### Definición del Modelo
 La red neuronal opera bajo principios de **"Purificación Geométrica"**, eliminando sesgos inductivos clásicos para maximizar la generalización:
 *   **Input Tensors:** `(N, 9)` → Coordenadas (XYZ) + Color (RGB) + Normales de Superficie (Nx, Ny, Nz).
