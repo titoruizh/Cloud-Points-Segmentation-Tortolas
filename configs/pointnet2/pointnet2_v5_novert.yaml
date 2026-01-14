@@ -1,0 +1,41 @@
+experiment:
+  project: "Tortolas-segmentation"
+  name: "RTX 5090 PointNet2 V5 NoVert"
+  group: "Pointnet V5 NoVert"
+  entity: "tito-ruiz-haros"
+
+model:
+  architecture: "PointNet2"
+  d_in: 9  # V5: XYZ(3) + RGB(3) + Normals(3) = 9. (No Verticality)
+  num_classes: 2
+  base_radius: 3.5 # Mantenemos el radio ganador de V3/V4
+
+data:
+  path: "data/processed/blocks_10m V5"
+  num_points: 10000
+  batch_size: 64
+  accumulations: 1
+  label_offset: 0
+  class_weights: [1.0, 15.0] # Weights ajustados por análisis V5 (Ratio 22:1)
+  train_split_ratio: 0.8
+  oversample_machinery: 4
+
+train:
+  epochs: 75
+  learning_rate: 0.001
+  scheduler: "CosineAnnealingLR"
+  scheduler_min_lr: 1.0e-5
+  wandb_mode: "online"
+
+system:
+  device: "cuda"
+  num_workers: 8
+  pin_memory: True
+
+augmentation:
+  rotate: True
+  flip: True
+  scale_min: 0.9
+  scale_max: 1.1
+  jitter_sigma: 0.005
+  input_dropout_ratio: 0.0

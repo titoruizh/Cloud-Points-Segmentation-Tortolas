@@ -1,0 +1,42 @@
+experiment:
+  name: "RTX 5090 RandLANet V4 RGB H-Dens"
+  project: "Tortolas-segmentation"
+  entity: "tito-ruiz-haros"
+  group: "RandLANet V4 RGB"
+
+system:
+  device: "cuda"
+  num_workers: 16
+  pin_memory: True
+
+model:
+  architecture: "RandLANet"
+  num_classes: 2
+  d_in: 10  # CRÍTICO: 3(XYZ) + 3(RGB) + 3(N) + 1(V)
+
+data:
+  path: "data/processed/blocks_30m V4"  # Dataset V4 RGB 30m
+  label_offset: 0
+  num_points: 65536  # Alta densidad
+  batch_size: 10     # Optimizado para VRAM
+  accumulations: 2
+  train_split_ratio: 0.8
+  
+  # Runtime oversampling (Keep V3 Aggressive)
+  oversample_machinery: 4
+  
+  # Pesos: Iniciamos en el "Límite" de V3. Esperamos que el color estabilice.
+  class_weights: [1.0, 35.0]
+
+augmentation:
+  rotate: True
+  flip: True
+  scale_min: 0.90
+  scale_max: 1.10
+  jitter_sigma: 0.005
+
+train:
+  epochs: 100
+  learning_rate: 0.0004  # Ligeramente conservador
+  scheduler: "CosineAnnealingLR"
+  scheduler_min_lr: 0.00001

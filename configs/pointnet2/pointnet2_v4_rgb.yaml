@@ -1,0 +1,40 @@
+experiment:
+  name: "RTX 5090 PointNet2 V4 RGB"
+  project: "Tortolas-segmentation"
+  entity: "tito-ruiz-haros"
+  group: "Pointnet V4 RGB"
+
+system:
+  device: "cuda"
+  num_workers: 8
+  pin_memory: true
+
+data:
+  path: "data/processed/blocks_10m V4" # Dataset generado por preprocess_blocks_10m_v4.py
+  num_points: 10000        # Mantenemos 10k para PointNet++
+  batch_size: 64           # Mantenemos 64 (Optimized V3)
+  accumulations: 1
+  label_offset: 0
+  train_split_ratio: 0.8
+  class_weights: [1.0, 20.0] # Weights Robustos (V3 Winner)
+
+model:
+  architecture: "PointNet2"
+  num_classes: 2
+  d_in: 10                 # CRÍTICO: 3(XYZ) + 3(RGB) + 3(N) + 1(V)
+  base_radius: 3.5         # CRÍTICO: El mejor radio de V3
+
+train:
+  epochs: 100
+  learning_rate: 0.0010    # Winner V3
+  scheduler: "StepLR"
+  scheduler_step_size: 20
+  scheduler_gamma: 0.5
+
+augmentation:
+  rotate: true
+  flip: true
+  scale_min: 0.8
+  scale_max: 1.2
+  jitter_sigma: 0.005      # Thin jitter for detail
+  input_dropout_ratio: 0.0

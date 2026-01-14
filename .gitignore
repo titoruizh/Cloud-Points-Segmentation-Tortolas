@@ -1,0 +1,25 @@
+/data/
+checkpoints/
+ComfyUI/
+ComfyUI Antiguo/
+app_inference/
+wandb/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Logs del sistema y agentes
+*.log
+
+# Archivos de configuración local / Secretos
+.env
+.venv/
+venv/
+env/
+
+# Configuración de IDEs
+.vscode/
+.idea/
+
+# Archivos temporales o de notas
+comandos.txt

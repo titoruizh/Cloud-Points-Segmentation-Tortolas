@@ -1,0 +1,22 @@
+program: TRAIN.py
+command:
+  - ${env}
+  - ${interpreter}
+  - ${program}
+  - "--config"
+  - "configs/randlanet/randlanet_v4_rgb.yaml"
+name: "RTX 5090 RandLANet V4 RGB Sweep"
+project: "Tortolas-segmentation"
+entity: "tito-ruiz-haros"
+method: bayes
+metric:
+  name: val/IoU_Maquinaria
+  goal: maximize
+parameters:
+  learning_rate:
+    values: [0.0002, 0.0004, 0.001]
+  weight_maq:
+    values: [15.0, 25.0, 35.0]  # Rango Corregido (V3 Best=35, V3 Crash=50)
+early_terminate:
+  type: hyperband
+  min_iter: 10

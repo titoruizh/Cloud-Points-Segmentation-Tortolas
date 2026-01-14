@@ -1,0 +1,46 @@
+experiment:
+  name: "RTX 5090 PointNet2 V3"
+  project: "Tortolas-segmentation"  # ✅ Nuevo Proyecto
+  entity: "tito-ruiz-haros"  # ✅ Usuario Correcto
+  group: "Pointnet_V3"  # ✅ Grupo Agrupador V3 (Balanced)
+
+system:
+  device: "cuda"
+  num_workers: 16
+  pin_memory: True
+
+model:
+  architecture: "PointNet2"
+  num_classes: 2
+  d_in: 7  # xyz + normals + verticalidad
+  base_radius: 2.5  # 2.5m para mayor detalle local
+
+data:
+  path: "data/processed/blocks_10m V2"
+  label_offset: 0  # ✅ 0 porque preprocessing ya mapeó a 0/1
+  num_points: 10000  # ✅ AUMENTO: Ajustado a densidad real de 10x10m
+  batch_size: 64  # Reducido para estabilidad
+  accumulations: 1  # Simula batch de 64
+  train_split_ratio: 0.8
+  
+  # Runtime oversampling (3x machinery total)
+  oversample_machinery: 2  # 1 original + 2 copias = 3x
+  
+  # PESOS CORREGIDOS (V2): [Suelo, Maquinaria]
+  # Clase 0 = Suelo, Clase 1 = Maquinaria
+  use_filtered_blocks: False
+  class_weights: [1.0, 20.0]  # ✅ Suelo=1.0, Maquinaria=20.0 (Ratio 1:22)
+
+augmentation:
+  rotate: True  # Rotación en Z
+  flip: True  # Flip X, Y
+  scale_min: 0.80  # ✅ Agresivo (0.8-1.2) para generalizar
+  scale_max: 1.20
+  jitter_sigma: 0.005  # Ruido reducido
+  input_dropout_ratio: 0.2  # ✅ "Atontar" al modelo: borrar 20% de puntos al azar
+
+train:
+  epochs: 100  # ✅ Ajustado a 100 por eficiencia
+  learning_rate: 0.001  # Base LR (Sweep probará rangos)
+  scheduler: "CosineAnnealingLR"
+  scheduler_min_lr: 0.00001

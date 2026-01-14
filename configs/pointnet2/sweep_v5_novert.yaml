@@ -1,0 +1,29 @@
+program: TRAIN.py
+method: bayes
+metric:
+  name: val/IoU_Maquinaria
+  goal: maximize
+parameters:
+  run_ids:
+    values: [100] # Dummy param
+  learning_rate:
+    values: [0.0005, 0.001, 0.002]
+  weight_maq:
+    values: [15.0, 20.0, 25.0] # Explorar alrededor del ratio 22:1
+  base_radiuss:
+    values: [2.5, 3.5, 4.5] # Validar escala geométrica sin verticalidad
+
+early_terminate:
+  type: hyperband
+  min_iter: 15
+
+command:
+  - ${env}
+  - python3
+  - ${program}
+  - "--config"
+  - "configs/pointnet2/pointnet2_v5_novert.yaml"
+
+  
+project: "Tortolas-segmentation"
+entity: "tito-ruiz-haros"

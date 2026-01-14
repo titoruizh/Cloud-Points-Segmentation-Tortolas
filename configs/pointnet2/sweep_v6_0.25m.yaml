@@ -1,0 +1,27 @@
+program: TRAIN_V6.py
+method: grid
+name: "Sweep PointNet2 V6 (0.25m) Init"
+entity: "tito-ruiz-haros"
+project: "Tortolas-segmentation"
+
+metric:
+  name: val/IoU_Maquinaria
+  goal: maximize
+
+parameters:
+  train.learning_rate:
+    values: [0.0005, 0.001]
+  
+  data.class_weights:
+    values: [[1.0, 15.0], [1.0, 20.0]]
+    
+  model.base_radius:
+    values: [3.5] 
+
+command:
+  - ${env}
+  - python3
+  - ${program}
+  - --config
+  - configs/pointnet2/pointnet2_v6_0.25m.yaml # <--- V6 Config
+  - ${args}

@@ -1,0 +1,24 @@
+program: TRAIN.py
+method: bayes
+project: Tortolas-segmentation
+entity: tito-ruiz-haros
+name: "RTX 5090 RandLANet V3 30m Sweep"
+
+metric:
+  name: iou_maq
+  goal: maximize
+
+parameters:
+  learning_rate:
+    min: 0.0001
+    max: 0.001  # Reducido para evitar inestabilidad
+  
+  weight_maq:
+    values: [10.0, 15.0, 20.0]  # Regreso a valores "Sanos" (Evitar paranoia 50x)
+
+command:
+  - ${env}
+  - python3
+  - ${program}
+  - "--config"
+  - "configs/randlanet/randlanet_v3_30m.yaml"

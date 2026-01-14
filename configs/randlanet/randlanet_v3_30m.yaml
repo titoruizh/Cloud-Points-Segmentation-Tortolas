@@ -1,0 +1,43 @@
+experiment:
+  name: "RTX 5090 RandLANet V3 HighDensity 30m"
+  project: "Tortolas-segmentation"
+  entity: "tito-ruiz-haros"
+  group: "RandLANet V3"
+
+system:
+  device: "cuda"
+  num_workers: 16
+  pin_memory: True
+
+model:
+  architecture: "RandLANet"
+  num_classes: 2
+  d_in: 7  # xyz + normals + verticalidad
+
+data:
+  path: "data/processed/blocks_30m V3"  # 📂 NUEVA CARPETA GENERADA
+  label_offset: 0
+  num_points: 65536  # ✅ DENSIDAD EXTREMA: 65k puntos en 30x30m (~72 pts/m2)
+  batch_size: 10     # Ajustado para 65k puntos (probablemente 10-12 max en 24GB)
+  accumulations: 2   # Gradient Accumulation
+  train_split_ratio: 0.8
+  
+  # Runtime oversampling V3
+  oversample_machinery: 4  # 5x machinery
+  
+  # Pesos definidos por análisis de distribución (1.4% Maquinaria)
+  # Ratio Real: 1:70. Usamos 1:15 (Ganador V2) para evitar mínimos locales paranoicos.
+  class_weights: [1.0, 15.0]
+
+augmentation:
+  rotate: True
+  flip: True
+  scale_min: 0.90
+  scale_max: 1.10
+  jitter_sigma: 0.005
+
+train:
+  epochs: 75
+  learning_rate: 0.0005  # LR Conservador para RandLANet
+  scheduler: "CosineAnnealingLR"
+  scheduler_min_lr: 0.00001

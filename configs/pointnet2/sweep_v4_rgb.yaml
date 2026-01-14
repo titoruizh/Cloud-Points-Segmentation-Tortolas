@@ -1,0 +1,24 @@
+program: TRAIN.py
+command:
+  - ${env}
+  - ${interpreter}
+  - ${program}
+  - "--config"
+  - "configs/pointnet2/pointnet2_v4_rgb.yaml"
+name: "RTX 5090 PointNet2 V4 RGB Sweep"
+project: "Tortolas-segmentation"
+entity: "tito-ruiz-haros"
+method: bayes
+metric:
+  name: val/IoU_Maquinaria
+  goal: maximize
+parameters:
+  learning_rate:
+    values: [0.0005, 0.001, 0.002]
+  weight_maq:
+    values: [15.0, 20.0, 25.0]
+  base_radius:
+    values: [2.5, 3.5, 4.5]
+early_terminate:
+  type: hyperband
+  min_iter: 15

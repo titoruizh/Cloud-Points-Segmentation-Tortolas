@@ -1,0 +1,27 @@
+program: TRAIN.py
+method: bayes
+project: Tortolas-segmentation
+entity: tito-ruiz-haros
+name: "RTX 5090 V2 Hyperparam Sweep"
+
+metric:
+  name: iou_maq  # Asegurarse de que TRAIN.py loguea esto
+  goal: maximize
+
+parameters:
+  learning_rate:
+    min: 0.0001
+    max: 0.005
+  
+  weight_maq:
+    values: [10.0, 15.0, 20.0]
+    
+  base_radius:
+    values: [2.5, 3.5, 5.0]
+
+command:
+  - ${env}
+  - python3
+  - ${program}
+  - "--config"
+  - "configs/pointnet2/rtx5090_v4_optimized.yaml"
