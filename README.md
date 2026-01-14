@@ -17,13 +17,16 @@ Tras exhaustivas pruebas comparativas (Benchmark V1-V4), la solución final cris
 La red neuronal opera bajo principios de **"Purificación Geométrica"**, eliminando sesgos inductivos clásicos para maximizar la generalización:
 *   **Input Tensors:** `(N, 9)` → Coordenadas (XYZ) + Color (RGB) + Normales de Superficie (Nx, Ny, Nz).
     *   *Nota Técnica:* Se eliminó explícitamente la feature de "Verticalidad" para evitar el overfitting en techos planos y estructuras de contención.
-*   **Densidad Sincronizada:** Entrenamiento nativo a **0.25m/voxel** con **2048 puntos por bloque**, garantizando congruencia matemática entre el *Training Manifold* y la data de inferencia real.
+*   **Densidad Sincronizada:** Entrenamiento nativo a **0.25m/voxel** con **2048 puntos por bloque**, garantizando congruencia matemática entre el *Training Manifold* y la data de inferencia real. incluso probado a 10000 puntos por bloque por resoluciones a 0.10m con los mismos buenos resultados.
 
 ### MLOps & Pipeline
 El proyecto sigue una estructura estricta de **Data-Centric AI**:
 1.  **Ingesta:** `data/raw` (LAS/LAZ) → Validación de integridad y normalización.
 2.  **Tracking:** Integración profunda con **Weights & Biases (WandB)** para monitoreo en tiempo real de gradientes, LR scheduling (Cosine Annealing) y versionado de artefactos.
 3.  **Checkpoints:** Serialización de modelos basada en métricas de validación (`best_iou_machinery.pth`) almacenados en `checkpoints/`.
+
+<img width="1328" height="620" alt="image" src="https://github.com/user-attachments/assets/96a2daaf-4c4f-4f54-a225-06c0c747a78b" />
+
 
 ---
 
