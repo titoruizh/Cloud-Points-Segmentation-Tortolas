@@ -291,22 +291,30 @@ def main():
     
     print(f"📊 Datos cargados: {len(full_dataset)} total | {train_size} Train | {val_size} Val")
 
+    # ⚠️ IMPORTANTE: num_workers=0 para evitar errores de CUDA multiprocessing
+    # Los datos ya se cargan en GPU dentro del Dataset (augmentation GPU)
+    # La RTX 5090 es tan rápida que el overhead de CPU no es cuello de botella
     train_loader = DataLoader(
         train_dataset, 
         batch_size=cfg['data']['batch_size'], 
         shuffle=True, 
-        num_workers=cfg['system']['num_workers'],
-        pin_memory=cfg['system'].get('pin_memory', True),
-        drop_last=True
+        num_workers=0,  # ← CAMBIO CRÍTICO: 0 para compatibilidad CUDA
+        pin_memory=False,  # Ya están en GPU, no necesitamos pin_memory
+        drop_last=True,
+        persistent_workers=False
     )
     
     val_loader = DataLoader(
         val_dataset, 
         batch_size=cfg['data']['batch_size'], 
         shuffle=False, 
-        num_workers=cfg['system']['num_workers'],
-        pin_memory=cfg['system'].get('pin_memory', True)
+        num_workers=0,  # ← CAMBIO CRÍTICO: 0 para compatibilidad CUDA
+        pin_memory=False  # Ya están en GPU
     )
+    
+    # 📝 NOTA: Si notas que la GPU espera datos (uso <90% constante),
+    # podemos ajustar para usar torch.multiprocessing.set_start_method('spawn')
+    # y habilitar workers. Por ahora, num_workers=0 es la opción segura.
 
     # 4. Inicializar Modelo
     arch_name = cfg['model']['architecture']

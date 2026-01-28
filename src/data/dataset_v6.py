@@ -6,12 +6,20 @@ from torch.utils.data import Dataset
 
 class MiningDataset(Dataset):
     def __init__(self, data_dir, num_points=4096, split='train', aug_config=None, 
-                 use_filtered=False, filtered_file=None, oversample_machinery=0):
+                 use_filtered=False, filtered_file=None, oversample_machinery=0,
+                 device='cuda'):
+        """
+        Mining Dataset V6 con Data Augmentation en GPU.
+        
+        Args:
+            device: 'cuda' para GPU augmentation, 'cpu' para legacy mode
+        """
         self.data_dir = data_dir
         self.num_points = num_points
         self.split = split
         self.aug_config = aug_config
         self.oversample_machinery = oversample_machinery
+        self.device = device  # GPU por defecto
         
         if use_filtered and filtered_file:
             filtered_path = os.path.join(data_dir, filtered_file)
@@ -42,25 +50,66 @@ class MiningDataset(Dataset):
 
     def __len__(self): return len(self.file_list)
 
-    def augment_data(self, xyz, normals):
-        if self.aug_config is None: return xyz, normals
+    def augment_data_gpu(self, xyz_tensor, normals_tensor):
+        """
+        Data Augmentation COMPLETAMENTE en GPU usando PyTorch.
+        Compatible con RTX 5090 / CUDA 12.8.
+        Elimina transferencias CPU↔GPU durante entrenamiento.
+        
+        Args:
+            xyz_tensor: torch.Tensor [N, 3] en GPU
+            normals_tensor: torch.Tensor [N, 3] en GPU
+        
+        Returns:
+            xyz_aug, normals_aug: Tensores aumentados (permanecen en GPU)
+        """
+        if self.aug_config is None:
+            return xyz_tensor, normals_tensor
+        
+        device = xyz_tensor.device
+        dtype = xyz_tensor.dtype
+        
+        # ===== ROTACIÓN EN Z =====
         if self.aug_config.get('rotate', False):
-            angle = np.random.uniform(0, 2 * np.pi)
-            c, s = np.cos(angle), np.sin(angle)
-            R = np.array([[c, -s, 0], [s, c, 0], [0, 0, 1]])
-            xyz = np.dot(xyz, R.T); normals = np.dot(normals, R.T)
+            angle = torch.rand(1, device=device, dtype=dtype) * 2 * np.pi
+            c, s = torch.cos(angle), torch.sin(angle)
+            
+            # Matriz de rotación 3x3
+            R = torch.zeros(3, 3, device=device, dtype=dtype)
+            R[0, 0] = c
+            R[0, 1] = -s
+            R[1, 0] = s
+            R[1, 1] = c
+            R[2, 2] = 1.0
+            
+            # Aplicar rotación (matmul en GPU)
+            xyz_tensor = xyz_tensor @ R.T
+            normals_tensor = normals_tensor @ R.T
+        
+        # ===== FLIP ALEATORIO =====
         if self.aug_config.get('flip', False):
-            if np.random.random() > 0.5: xyz[:, 0] = -xyz[:, 0]; normals[:, 0] = -normals[:, 0]
-            if np.random.random() > 0.5: xyz[:, 1] = -xyz[:, 1]; normals[:, 1] = -normals[:, 1]
+            if torch.rand(1, device=device) > 0.5:
+                xyz_tensor[:, 0] *= -1
+                normals_tensor[:, 0] *= -1
+            if torch.rand(1, device=device) > 0.5:
+                xyz_tensor[:, 1] *= -1
+                normals_tensor[:, 1] *= -1
+        
+        # ===== SCALE ALEATORIO =====
         s_min = self.aug_config.get('scale_min', 0.9)
         s_max = self.aug_config.get('scale_max', 1.1)
-        scale = np.random.uniform(s_min, s_max)
-        xyz = xyz * scale
+        scale = torch.empty(1, device=device, dtype=dtype).uniform_(s_min, s_max)
+        xyz_tensor = xyz_tensor * scale
+        
+        # ===== JITTER =====
         sigma = self.aug_config.get('jitter_sigma', 0.01)
         clip = 0.05
-        jitter = np.clip(sigma * np.random.randn(*xyz.shape), -1*clip, clip)
-        xyz = xyz + jitter
-        return xyz, normals
+        
+        jitter = torch.randn_like(xyz_tensor, device=device) * sigma
+        jitter = torch.clamp(jitter, -clip, clip)
+        xyz_tensor = xyz_tensor + jitter
+        
+        return xyz_tensor, normals_tensor
 
     def __getitem__(self, idx):
         file_path = self.file_list[idx]
@@ -90,18 +139,27 @@ class MiningDataset(Dataset):
                 normals = data[:, 6:9]
                 labels = data[:, -1].astype(np.int64)
 
+            # Convertir a tensores de PyTorch EN GPU directamente
+            xyz_tensor = torch.from_numpy(xyz.astype(np.float32)).to(self.device)
+            normals_tensor = torch.from_numpy(normals.astype(np.float32)).to(self.device)
+            rgb_tensor = torch.from_numpy(rgb.astype(np.float32)).to(self.device)
+            labels_tensor = torch.from_numpy(labels).long().to(self.device)
+            
+            # ===== AUGMENTATION EN GPU =====
             if self.split == "train" and self.aug_config is not None:
-                xyz, normals = self.augment_data(xyz, normals)
+                xyz_tensor, normals_tensor = self.augment_data_gpu(xyz_tensor, normals_tensor)
             
-            xyz = xyz.astype(np.float32)
-            normals = normals.astype(np.float32)
+            # Concatenar features [xyz, rgb, normals] = 9 canales
+            features = torch.cat([xyz_tensor, rgb_tensor, normals_tensor], dim=1)
             
-            if rgb is not None:
-                features = np.hstack([xyz, rgb, normals]) # 9 Channels
-            else:
-                features = np.hstack([xyz, normals, np.zeros((len(xyz), 1))])
-
-            return torch.from_numpy(xyz).float(), torch.from_numpy(features).float(), torch.from_numpy(labels).long()
+            # Devolver todo en GPU (el DataLoader ya NO necesita pin_memory)
+            return xyz_tensor, features, labels_tensor
+            
         except Exception as e:
             print(f"Error {file_path}: {e}")
-            return torch.zeros((self.num_points, 3)), torch.zeros((self.num_points, 9)), torch.zeros(self.num_points, dtype=torch.long)
+            # Fallback en GPU
+            return (
+                torch.zeros((self.num_points, 3), device=self.device),
+                torch.zeros((self.num_points, 9), device=self.device),
+                torch.zeros(self.num_points, dtype=torch.long, device=self.device)
+            )

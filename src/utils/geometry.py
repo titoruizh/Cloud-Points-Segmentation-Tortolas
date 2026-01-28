@@ -1,50 +1,54 @@
 import numpy as np
 import open3d as o3d
 
-def compute_normals_gpu(points, k=20):
+def compute_normals_gpu(points, k=20, radius=1.0):
     """
-    Cálculo de normales usando Open3D con aceleración GPU (CUDA).
-    Mucho más rápido que CPU para nubes grandes.
+    Cálculo de normales usando Open3D Tensor API (GPU).
+    Compatible con RTX 5090 / CUDA 12.8 / Arquitectura Blackwell.
     
     Args:
         points: numpy array (N, 3) con coordenadas XYZ
-        k: número de vecinos para estimar normales
+        k: número máximo de vecinos para estimación
+        radius: radio de búsqueda (metros)
     
     Returns:
-        normals: numpy array (N, 3) con vectores normales
+        normals: numpy array (N, 3) con vectores normales orientados hacia Z+
+    
+    Speedup esperado: 3-5x sobre CPU para nubes >100k puntos
     """
     import open3d.core as o3c
+    import open3d.t.geometry as o3dg
     
-    # Intentar usar CUDA
+    # Intentar usar CUDA (fallback a CPU si falla)
     try:
         device = o3c.Device('CUDA:0')
-        # Verificar que funciona creando un tensor pequeño
+        # Test rápido para verificar disponibilidad
         test = o3c.Tensor([1.0], device=device)
         del test
-        print(f"   🚀 Usando GPU para cálculo de normales")
-    except Exception:
+        print(f"   🚀 Normales: Usando GPU (CUDA)")
+    except Exception as e:
         device = o3c.Device('CPU:0')
-        print(f"   ⚠️ GPU no disponible, usando CPU")
+        print(f"   ⚠️ Normales: Fallback a CPU ({e})")
     
-    # Convertir a tensor Open3D
+    # Convertir NumPy → Open3D Tensor (mueve a GPU si device=CUDA)
     points_tensor = o3c.Tensor(points.astype(np.float32), device=device)
     
     # Crear PointCloud tensor
-    pcd = o3d.t.geometry.PointCloud(device)
+    pcd = o3dg.PointCloud(device)
     pcd.point.positions = points_tensor
     
-    # Estimar normales en GPU
-    pcd.estimate_normals(max_nn=k, radius=1.0)
+    # Estimar normales en GPU (hybrid search: radio Y max neighbors)
+    pcd.estimate_normals(max_nn=k, radius=radius)
+    
+    # Obtener normales como NumPy
+    normals_np = pcd.point.normals.cpu().numpy()
     
     # Orientar normales hacia arriba (Z+)
-    # Open3D tensor no tiene orient_normals, lo hacemos manualmente
-    normals_tensor = pcd.point.normals.cpu().numpy()
+    # Si Nz < 0, invertir la normal
+    flip_mask = normals_np[:, 2] < 0
+    normals_np[flip_mask] *= -1
     
-    # Orientar: si Nz < 0, invertir la normal
-    flip_mask = normals_tensor[:, 2] < 0
-    normals_tensor[flip_mask] *= -1
-    
-    return normals_tensor
+    return normals_np
 
 
 def compute_normals_fast(points, k=20):
