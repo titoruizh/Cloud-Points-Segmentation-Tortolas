@@ -75,7 +75,7 @@ def main():
             sys.exit(1)
         print("✅ Dependencias OK\n")
     
-    output_dir = os.path.join(PROJECT_ROOT, "data/predictions/app_v5")
+    output_dir = os.path.join(PROJECT_ROOT, "data/predictions/app_output")
     os.makedirs(output_dir, exist_ok=True)
     print(f"📁 Directorio de salida: {output_dir}\n")
     

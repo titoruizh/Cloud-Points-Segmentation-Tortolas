@@ -69,3 +69,51 @@ Esperamos que al entrenar con la **misma densidad** que la inferencia real, el m
     *   `learning_rate`: [0.0005, 0.001]
     *   `class_weights`: [[1.0, 15.0], [1.0, 20.0]]
     *   `base_radius`: 3.5m (Fijo, validado previamente)
+---
+
+## 5. Inferencia V6: "Nitro" Adaptation 🚀
+
+Para mantener la velocidad lograda en V5.2 pero respetar la nueva densidad de 0.25m, hemos creado el script dedicado **`infer_pointnet_v6.py`**.
+
+### 5.1 Características
+*   **Optimizaciones Heredadas:** Mantiene Torch Compile, FP16, Gridding Vectorizado y carga rápida de normales.
+*   **Ajuste de Densidad:**
+    *   `num_points` por defecto: **2048** (Es crucial que coincida con el entrenamiento).
+*   **Ruta de Salida:** Por defecto guarda en `data/predictions_v6/`.
+*   **Umbral de Confianza:** Configurable vía `--confidence` (Default: 0.5).
+
+### 5.2 Uso
+```bash
+python3 scripts/inference/infer_pointnet_v6.py \
+  --input_file "data/raw_test/RGB/DEM_MO_260112_0.25.laz" \
+  --checkpoint "checkpoints/SWEEP_RTX 5090 PointNet2 V6.../BEST_IOU.pth" \
+  --output_file "data/predictions_v6/prediccion.laz" \
+  --batch_size 64 \
+  --confidence 0.8
+```
+
+---
+
+## 6. Resultados y Validación 🏆
+
+### 6.1 Métricas de Entrenamiento (Best Manual Run)
+El experimento V6 (`LR=0.001`, `W=[1, 15]`, `Radius=3.5`) ha superado las expectativas, validando la hipótesis de sincronización de resolución (0.25m).
+
+| Métrica | Valor Final (Val) | Mejor Histórico | Observación |
+| :--- | :--- | :--- | :--- |
+| **mIoU** | **93.06%** | - | Balance excepcional entre clases. |
+| **IoU Maquinaria** | **87.67%** | **88.85%** | Detección muy precisa. |
+| **IoU Suelo** | **98.46%** | - | Casi perfecto. |
+| **Val Loss** | **0.0227** | **0.0219** | Convergencia estable. |
+
+> [!IMPORTANT]
+> **Conclusión Clave:** Entrenar a **0.25m (2048 puntos)** ha resultado en un modelo mucho más robusto para datos de producción que la versión V5 entrenada a 0.10m.
+
+### 6.2 Validación de Inferencia
+Se ejecutó `infer_pointnet_v6.py` sobre una nube de producción real (`DEM_MO_260112_0.25.laz`).
+
+*   **Rendimiento:** 5,581 bloques procesados en **~58 segundos** (Ultra rápido).
+*   **Resultados Cualitativos:** Segmentación limpia de techos y maquinaria con ausencia de ruido "pimienta".
+*   **Normales:** Cálculo automático "On-the-fly" (Radius 3.5m) integrado en el tiempo de ejecución.
+
+**Estado Final:** ✅ V6 está listo para despliegue en producción.

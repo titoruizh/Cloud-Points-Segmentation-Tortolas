@@ -176,8 +176,8 @@ def run_inference(args):
             global_probs[indices_np] = probs_np
 
     # Guardar
-    print("💾 Guardando...")
-    preds = (global_probs > 0.5).astype(np.uint8)
+    print(f"💾 Guardando (Umbral Confianza: {args.confidence})...")
+    preds = (global_probs > args.confidence).astype(np.uint8)
     
     las_in = laspy.read(args.input_file)
     new_las = laspy.create(point_format=las_in.header.point_format, file_version=las_in.header.version)
@@ -204,6 +204,7 @@ if __name__ == "__main__":
     # AJUSTE CRÍTICO V6: 2048 Puntos
     parser.add_argument('--num_points', type=int, default=2048) 
     parser.add_argument('--batch_size', type=int, default=64)
+    parser.add_argument('--confidence', type=float, default=0.5, help="Umbral de probabilidad para considerar Maquinaria (0.0 - 1.0)")
     parser.add_argument('--no_compile', action='store_true')
     args = parser.parse_args()
     
