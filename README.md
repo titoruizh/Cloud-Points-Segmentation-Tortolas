@@ -2,13 +2,6 @@
 
 Proyecto de investigación y desarrollo en GeoAI: segmentación binaria (maquinaria vs. suelo) sobre nubes fotogramétricas. Este repositorio es una muestra de trabajo técnico (no un paquete listo para uso externo). Enfocado en reproducibilidad experimental, MLOps y optimización de throughput para producción.
 
-<img width="1882" height="580" alt="image" src="https://github.com/user-attachments/assets/a584df28-2917-4167-a05f-20556c8de400" />
-<img width="1884" height="600" alt="image" src="https://github.com/user-attachments/assets/f1ebb32e-e2d4-46c4-829d-bb398ad27c96" />
-
-
-<img width="1891" height="404" alt="image" src="https://github.com/user-attachments/assets/43a6eb27-c57d-46ab-b539-cc4895ea850b" />
-<img width="1885" height="406" alt="image" src="https://github.com/user-attachments/assets/b0492563-e778-49b0-8b78-a33faa36da00" />
-
 
 🔍 Resultados de segmentación (RGB vs Clasificado)
 Escena 1
