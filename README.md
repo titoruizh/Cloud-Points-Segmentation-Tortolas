@@ -2,6 +2,40 @@
 
 Proyecto de investigación y desarrollo en GeoAI: segmentación binaria (maquinaria vs. suelo) sobre nubes fotogramétricas. Este repositorio es una muestra de trabajo técnico (no un paquete listo para uso externo). Enfocado en reproducibilidad experimental, MLOps y optimización de throughput para producción.
 
+<img width="1833" height="641" alt="image" src="https://github.com/user-attachments/assets/53affffd-3770-440f-a0bb-333b1e75c7b4" />
+<img width="1835" height="641" alt="image" src="https://github.com/user-attachments/assets/69022d7a-2ab2-4233-8101-106abb8e24bd" />
+
+<img width="1891" height="404" alt="image" src="https://github.com/user-attachments/assets/43a6eb27-c57d-46ab-b539-cc4895ea850b" />
+<img width="1885" height="406" alt="image" src="https://github.com/user-attachments/assets/b0492563-e778-49b0-8b78-a33faa36da00" />
+
+
+
+<!-- ===== Row 1 ===== -->
+<div style="display:flex; gap:10px; margin-bottom:14px;">
+  <figure style="flex:1; margin:0;">
+    <img src="RUTA_RGB_1.png" style="width:100%; border-radius:6px;">
+    <figcaption align="center"><b>RGB – Fotogrametría</b></figcaption>
+  </figure>
+
+  <figure style="flex:1; margin:0;">
+    <img src="RUTA_MASK_1.png" style="width:100%; border-radius:6px;">
+    <figcaption align="center"><b>Segmentación binaria (Maquinaria)</b></figcaption>
+  </figure>
+</div>
+
+<!-- ===== Row 2 ===== -->
+<div style="display:flex; gap:10px;">
+  <figure style="flex:1; margin:0;">
+    <img src="RUTA_RGB_2.png" style="width:100%; border-radius:6px;">
+    <figcaption align="center"><b>RGB – Fotogrametría</b></figcaption>
+  </figure>
+
+  <figure style="flex:1; margin:0;">
+    <img src="RUTA_MASK_2.png" style="width:100%; border-radius:6px;">
+    <figcaption align="center"><b>Segmentación binaria (Maquinaria)</b></figcaption>
+  </figure>
+</div>
+
 **Estado:** Modelo V6 (Resolution Sync, 0.25m) validado y listo para despliegue local.
 
 **Resumen técnico — puntos clave:**
@@ -64,4 +98,5 @@ python3 scripts/inference/infer_pointnet_v6.py \
 
 
 
+<img width="1046" height="467" alt="image" src="https://github.com/user-attachments/assets/570dd147-8202-4ba0-b075-9de12265bd68" />
 
