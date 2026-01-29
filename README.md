@@ -10,32 +10,6 @@ Proyecto de investigación y desarrollo en GeoAI: segmentación binaria (maquina
 
 
 
-<!-- ===== Row 1 ===== -->
-<div style="display:flex; gap:10px; margin-bottom:14px;">
-  <figure style="flex:1; margin:0;">
-    <img src="RUTA_RGB_1.png" style="width:100%; border-radius:6px;">
-    <figcaption align="center"><b>RGB – Fotogrametría</b></figcaption>
-  </figure>
-
-  <figure style="flex:1; margin:0;">
-    <img src="RUTA_MASK_1.png" style="width:100%; border-radius:6px;">
-    <figcaption align="center"><b>Segmentación binaria (Maquinaria)</b></figcaption>
-  </figure>
-</div>
-
-<!-- ===== Row 2 ===== -->
-<div style="display:flex; gap:10px;">
-  <figure style="flex:1; margin:0;">
-    <img src="RUTA_RGB_2.png" style="width:100%; border-radius:6px;">
-    <figcaption align="center"><b>RGB – Fotogrametría</b></figcaption>
-  </figure>
-
-  <figure style="flex:1; margin:0;">
-    <img src="RUTA_MASK_2.png" style="width:100%; border-radius:6px;">
-    <figcaption align="center"><b>Segmentación binaria (Maquinaria)</b></figcaption>
-  </figure>
-</div>
-
 **Estado:** Modelo V6 (Resolution Sync, 0.25m) validado y listo para despliegue local.
 
 **Resumen técnico — puntos clave:**
