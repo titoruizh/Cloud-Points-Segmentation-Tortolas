@@ -4,8 +4,6 @@ Proyecto de investigación y desarrollo en GeoAI: segmentación binaria (maquina
 
 **Estado:** Modelo V6 (Resolution Sync, 0.25m) validado y listo para despliegue local.
 
-**Contacto / CV:** tito-ruiz-haros (ver `wandb` entity: tito-ruiz-haros)
-
 **Resumen técnico — puntos clave:**
 - **Arquitectura:** PointNet++ MSG (entrada: XYZ + RGB + Normals, d_in = 9)
 - **Estrategia:** Sincronizar resolución de entrenamiento/inferencia a 0.25 m ("Resolution Sync") para eliminar domain-gap.
@@ -64,12 +62,6 @@ python3 scripts/inference/infer_pointnet_v6.py \
   --confidence 0.8
 ```
 
-**Imágenes (para portfolio)**
-- Inserte aquí dos imágenes: RGB original y resultado clasificado (RGB + máscara). Ruta sugerida: `docs/images/rgb_sample.png` y `docs/images/classified_sample.png`.
 
-![RGB input](docs/images/rgb_sample.png)
 
-![Classified output](docs/images/classified_sample.png)
-
-Si querés, genero una versión PDF resumen (1 página) para adjuntar a tu CV o preparo un badge/PNG con las métricas principales.
 
