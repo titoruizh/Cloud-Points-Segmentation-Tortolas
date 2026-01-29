@@ -10,6 +10,14 @@ Proyecto de investigación y desarrollo en GeoAI: segmentación binaria (maquina
 <img width="1885" height="406" alt="image" src="https://github.com/user-attachments/assets/b0492563-e778-49b0-8b78-a33faa36da00" />
 
 
+🔍 Resultados de segmentación (RGB vs Clasificado)
+Escena 1
+RGB	Segmentación
+<img src="https://github.com/user-attachments/assets/a584df28-2917-4167-a05f-20556c8de400" width="100%">	<img src="https://github.com/user-attachments/assets/f1ebb32e-e2d4-46c4-829d-bb398ad27c96" width="100%">
+Escena 2
+RGB	Segmentación
+<img src="https://github.com/user-attachments/assets/43a6eb27-c57d-46ab-b539-cc4895ea850b" width="100%">	<img src="https://github.com/user-attachments/assets/b0492563-e778-49b0-8b78-a33faa36da00" width="100%">
+
 
 **Estado:** Modelo V6 (Resolution Sync, 0.25m) validado y listo para despliegue local.
 
