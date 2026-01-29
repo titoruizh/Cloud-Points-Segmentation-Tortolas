@@ -2,9 +2,17 @@
 
 Proyecto de investigación y desarrollo en GeoAI: segmentación binaria (maquinaria vs. suelo) sobre nubes fotogramétricas. Este repositorio es una muestra de trabajo técnico (no un paquete listo para uso externo). Enfocado en reproducibilidad experimental, MLOps y optimización de throughput para producción.
 
-**Estado:** Modelo V6 (Resolution Sync, 0.25m) validado y listo para despliegue local.
 
-**Contacto / CV:** tito-ruiz-haros (ver `wandb` entity: tito-ruiz-haros)
+🔍 Resultados de segmentación (RGB vs Clasificado)
+Escena 1
+RGB	Segmentación
+<img src="https://github.com/user-attachments/assets/a584df28-2917-4167-a05f-20556c8de400" width="100%">	<img src="https://github.com/user-attachments/assets/f1ebb32e-e2d4-46c4-829d-bb398ad27c96" width="100%">
+Escena 2
+RGB	Segmentación
+<img src="https://github.com/user-attachments/assets/43a6eb27-c57d-46ab-b539-cc4895ea850b" width="100%">	<img src="https://github.com/user-attachments/assets/b0492563-e778-49b0-8b78-a33faa36da00" width="100%">
+
+
+**Estado:** Modelo V6 (Resolution Sync, 0.25m) validado y listo para despliegue local.
 
 **Resumen técnico — puntos clave:**
 - **Arquitectura:** PointNet++ MSG (entrada: XYZ + RGB + Normals, d_in = 9)
@@ -64,12 +72,6 @@ python3 scripts/inference/infer_pointnet_v6.py \
   --confidence 0.8
 ```
 
-**Imágenes (para portfolio)**
-- Inserte aquí dos imágenes: RGB original y resultado clasificado (RGB + máscara). Ruta sugerida: `docs/images/rgb_sample.png` y `docs/images/classified_sample.png`.
 
-![RGB input](docs/images/rgb_sample.png)
 
-![Classified output](docs/images/classified_sample.png)
-
-Si querés, genero una versión PDF resumen (1 página) para adjuntar a tu CV o preparo un badge/PNG con las métricas principales.
-
+<img width="1046" height="467" alt="image" src="https://github.com/user-attachments/assets/570dd147-8202-4ba0-b075-9de12265bd68" />
