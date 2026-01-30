@@ -4,6 +4,7 @@ Proyecto de investigación y desarrollo en GeoAI: segmentación binaria (maquina
 
 
 Resultados de segmentación (RGB vs Clasificado)
+
 Escena 1
 RGB	Segmentación
 <img src="https://github.com/user-attachments/assets/a584df28-2917-4167-a05f-20556c8de400" width="100%">	<img src="https://github.com/user-attachments/assets/f1ebb32e-e2d4-46c4-829d-bb398ad27c96" width="100%">
