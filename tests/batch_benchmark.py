@@ -5,11 +5,13 @@ Benchmark de batch sizes para la app de inferencia.
 Uso:
     python tests/batch_benchmark.py --input data/raw/DEM_MP_250310_CLASIFICADO.laz \
         --checkpoint checkpoints/SWEEP_RTX\ 5090\ PointNet2\ V6\ \(0.25m\)/LR0.0010_W20_J0.005_R3.5_BEST_IOU.pth \
-        --batches 64 96 128 160 --num_points 2048 --no-compile
+        --batches 64 96 128 160 192 224 256 --num_points 2048 --no-compile
 
 El script carga el modelo (una vez), y para cada batch_size ejecuta
 `InferenceEngine.run_inference` midiendo tiempo y pico de memoria GPU
 consultando `nvidia-smi` en un hilo paralelo.
+
+Por defecto prueba: 64, 96, 128, 160, 192, 224, 256 (RTX 5090 32GB)
 """
 import argparse
 import os
@@ -86,7 +88,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', required=True)
     parser.add_argument('--checkpoint', required=True)
-    parser.add_argument('--batches', type=int, nargs='+', default=[64, 96, 128])
+    parser.add_argument('--batches', type=int, nargs='+', default=[64, 96, 128, 160, 192, 224, 256])
     parser.add_argument('--num_points', type=int, default=2048)
     parser.add_argument('--no-compile', dest='use_compile', action='store_false')
     parser.add_argument('--out', default='tests/bench_results.json')
