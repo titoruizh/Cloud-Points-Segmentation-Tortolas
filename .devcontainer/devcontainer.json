@@ -4,9 +4,7 @@
 	"runArgs": [
 		"--gpus",
 		"all",
-		"--ipc=host",
-		"--name",
-		"geoai_rtx5090_dev"
+		"--ipc=host"
 	],
 	"forwardPorts": [
 		8188

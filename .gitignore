@@ -24,3 +24,7 @@ env/
 # Archivos temporales o de notas
 comandos.txt
 main_inference_app.py
+
+SPENCE/
+data/
+data/predictions
