@@ -14,6 +14,8 @@
 |-----------|-------------|-------------|
 | [INFERENCE_README.md](INFERENCE_README.md) | Guía ultra-rápida con comandos | 🟢 Empezar aquí |
 | [INFERENCE_GUIDE.md](INFERENCE_GUIDE.md) | Guía completa con todos los parámetros | 🟡 Para entender opciones |
+| [FIX_TECHO_INTERPOL_TUNING.md](FIX_TECHO_INTERPOL_TUNING.md) | Ajuste fino de postproceso (FIX_TECHO + INTERPOL) con ejemplos | 🟠 Para calibrar calidad final |
+| [INFERENCE_TEST_LOG.md](INFERENCE_TEST_LOG.md) | Bitácora de tests reales (V2/V3/V4) y comportamiento por dominio | 🟠 Para seguimiento experimental |
 | [ARCHITECTURE_COMPARISON.md](ARCHITECTURE_COMPARISON.md) | Comparativa detallada de modelos | 🟡 Elegir mejor arquitectura |
 
 ### Scripts Ejecutables
@@ -48,6 +50,7 @@
 
 ### "Quiero entender todos los parámetros"
 → [INFERENCE_GUIDE.md](INFERENCE_GUIDE.md)
+→ [FIX_TECHO_INTERPOL_TUNING.md](FIX_TECHO_INTERPOL_TUNING.md)
 
 ### "¿Qué es el sistema de votación?"
 → [ARCHITECTURE_COMPARISON.md](ARCHITECTURE_COMPARISON.md) (Sección "Sistema de Votación")

@@ -65,6 +65,7 @@ def main():
     parser.add_argument('--port', type=int, default=7860, help='Puerto del servidor (default: 7860)')
     parser.add_argument('--share', action='store_true', help='Generar link público')
     parser.add_argument('--no-check', action='store_true', help='Omitir verificación de dependencias')
+    parser.add_argument('--prod', action='store_true', help='Lanzar en Modo Producción (oculta opciones avanzadas para el operador)')
     args = parser.parse_args()
     
     print_banner()
@@ -85,7 +86,7 @@ def main():
     
     # Import aquí para asegurar que sys.path está configurado
     from app_inference.ui.app import launch_app
-    launch_app(port=args.port, share=args.share)
+    launch_app(port=args.port, share=args.share, prod_mode=args.prod)
 
 if __name__ == "__main__":
     main()
