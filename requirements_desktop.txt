@@ -1,0 +1,21 @@
+# ============================================
+# Dependencias Python para App de Escritorio
+# (Electron Headless Mode - Sin Gradio)
+# ============================================
+# Instalar con:
+#   pip install -r requirements_desktop.txt
+# ============================================
+
+# Core ML
+torch
+torchvision
+
+# Point Cloud I/O
+laspy[lazrs]
+
+# 3D Processing
+open3d
+numpy
+scipy
+scikit-learn
+tqdm
