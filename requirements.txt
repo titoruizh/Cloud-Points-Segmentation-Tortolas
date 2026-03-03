@@ -2,3 +2,4 @@ torch
 wandb
 numpy
 pyyaml
+psutil

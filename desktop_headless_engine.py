@@ -17,12 +17,16 @@ sys.path.insert(0, PROJECT_ROOT)
 
 def print_banner():
     print("""
-============================================================
-   🚀 Point Cloud Inference App V5 - DESKTOP BATCH ENGINE   
-------------------------------------------------------------
-   Inferencia en Segundo Plano (Headless Process)
-   Optimizaciones activas: FP16 + torch.compile
-============================================================
+
+                                                                  ║
+   🚀 Point Cloud Inference App V5                               ║
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━   ║
+                                                                  ║
+   PointNet++ "Geometric Purification"                           ║
+   Optimizado para RTX 5090 | FP16 + torch.compile               ║
+                                                                  ║
+   Pipeline: Inferencia → FIX_TECHO → INTERPOL (DTM)             ║
+                                                                  ║
 """)
 
 def main():
@@ -33,6 +37,7 @@ def main():
     parser.add_argument('--export_dtm', action='store_true', help='Exportar DTM')
     parser.add_argument('--export_clasificado', action='store_true', help='Exportar nube clasificada (Techos)')
     parser.add_argument('--preset', type=str, default='Las Tórtolas (Default - Suave)', help='Preset de Faena')
+    parser.add_argument('--batch', type=int, default=64, help='Tamaño del Batch Size (Recomendado: 64 para >24GB VRAM, 16 para <12GB VRAM)')
     args = parser.parse_args()
 
     print_banner()
@@ -108,9 +113,9 @@ def main():
     # Iniciar Motor de Inferencia (solo si no estamos en Bypass)
     inference_engine = None
     if not args.bypass:
-        inf_config = InferenceConfig(batch_size=64, num_points=v_config["num_points"], use_compile=True)
+        inf_config = InferenceConfig(batch_size=args.batch, num_points=v_config["num_points"], use_compile=True)
         inference_engine = InferenceEngine(inf_config)
-        print(f"\n[>>] Cargando pesos neuronales en GPU...")
+        print(f"\n[>>] Cargando pesos neuronales en GPU... (Batch Size: {args.batch})")
         sys.stdout.flush()
         
         ok = inference_engine.load_model(checkpoint_path, lambda msg: (print(f"    {msg}"), sys.stdout.flush()))

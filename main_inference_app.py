@@ -60,6 +60,53 @@ def check_dependencies():
         return False
     return True
 
+def print_system_info():
+    """Imprime información detallada del sistema para debugging"""
+    print("\n" + "="*60)
+    print("📊 INFORMACIÓN DEL SISTEMA")
+    print("="*60)
+    
+    # Sistema básico
+    import platform
+    print(f"Sistema Operativo: {platform.system()} {platform.release()}")
+    print(f"Python: {platform.python_version()}")
+    
+    # GPU
+    try:
+        import torch
+        print(f"\n🔥 GPU:")
+        if torch.cuda.is_available():
+            print(f"   GPU Detectada: {torch.cuda.get_device_name(0)}")
+            total_mem = torch.cuda.get_device_properties(0).total_memory / 1024**3
+            print(f"   VRAM Total: {total_mem:.2f} GB")
+            reserved = torch.cuda.memory_reserved(0) / 1024**3
+            allocated = torch.cuda.memory_allocated(0) / 1024**3
+            print(f"   VRAM Reservada: {reserved:.2f} GB")
+            print(f"   VRAM Usada: {allocated:.2f} GB")
+            print(f"   VRAM Libre: {total_mem - reserved:.2f} GB")
+        else:
+            print("   ⚠️ No hay GPU disponible (usando CPU)")
+    except:
+        print("   ⚠️ No se pudo obtener info de GPU")
+    
+    # CPU y RAM
+    try:
+        import psutil
+        cpu_count = psutil.cpu_count(logical=True)
+        cpu_freq = psutil.cpu_freq()
+        mem = psutil.virtual_memory()
+        print(f"\n💻 CPU:")
+        print(f"   Núcleos: {cpu_count}")
+        if cpu_freq:
+            print(f"   Frecuencia: {cpu_freq.current:.0f} MHz")
+        print(f"   RAM Total: {mem.total / 1024**3:.2f} GB")
+        print(f"   RAM Disponible: {mem.available / 1024**3:.2f} GB")
+        print(f"   RAM Usada: {mem.percent}%")
+    except:
+        print("   ⚠️ No se pudo obtener info de CPU/RAM (psutil no disponible)")
+    
+    print("="*60 + "\n")
+
 def main():
     parser = argparse.ArgumentParser(description='Point Cloud Inference App V5')
     parser.add_argument('--port', type=int, default=7860, help='Puerto del servidor (default: 7860)')
@@ -69,6 +116,7 @@ def main():
     args = parser.parse_args()
     
     print_banner()
+    print_system_info()
     
     if not args.no_check:
         print("🔍 Verificando dependencias...")
