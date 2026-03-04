@@ -1,0 +1,8 @@
+# Este directorio contiene los archivos de salida de la aplicación
+# ================================================================
+#
+# Estructura:
+# - logs/          -> Logs de cada ejecución
+# - temp/          -> Archivos temporales (se limpian automáticamente)
+#
+# Los archivos finales se guardan en: data/predictions/app_v5/

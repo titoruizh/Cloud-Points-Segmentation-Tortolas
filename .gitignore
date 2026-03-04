@@ -2,7 +2,6 @@
 checkpoints/
 ComfyUI/
 ComfyUI Antiguo/
-app_inference/
 wandb/
 __pycache__/
 *.pyc

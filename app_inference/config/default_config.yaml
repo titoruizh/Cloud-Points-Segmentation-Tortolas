@@ -1,0 +1,57 @@
+# Configuración por defecto de la App de Inferencia V5
+# =====================================================
+# Esta configuración puede ser sobreescrita desde la UI
+
+# Modelo
+model:
+  default_checkpoint: "checkpoints/SWEEP_RTX 5090 PointNet2 V5 NoVert/LR0.0010_W20_J0.005_R3.5_BEST_IOU.pth"
+  d_in: 9  # Dimensiones de entrada (XYZ + RGB + Normals, sin Verticalidad)
+  num_classes: 2  # Suelo(0/2) vs Maquinaria(1)
+
+# Inferencia
+inference:
+  batch_size: 64  # Default conservador. RTX 5090 (32GB): 128-256 recomendado para testing
+  block_size: 10.0  # Metros
+  num_points: 10000  # Puntos por bloque
+  use_compile: true  # torch.compile (mejora velocidad, +1-2min inicio)
+
+# Postprocesamiento - FIX_TECHO
+fix_techo:
+  enabled: true
+  eps: 2.5  # Radio DBSCAN en metros
+  z_buffer: 1.5  # Altura mínima desde el suelo para no pintar (protege piso debajo)
+  max_height: 8.0  # Altura máxima esperada de maquinaria
+  padding: 1.5  # Margen extra en XY para buscar techo
+  min_samples: 30  # Mínimo de puntos para formar cluster
+
+# Postprocesamiento - INTERPOL (Bulldozer Digital)
+interpol:
+  enabled: true
+  k_neighbors: 12  # Vecinos para interpolación IDW
+  max_dist: 50.0  # Distancia máxima para buscar suelo de referencia
+
+# Salida
+output:
+  default_dir: "data/predictions/app_v5"
+  suffix_inference: "_inferido"
+  suffix_fix_techo: "_techos"
+  suffix_interpol: "_DTM"
+  keep_intermediates: false  # Mantener archivos intermedios
+
+# Sistema
+system:
+  device: "cuda"  # cuda o cpu
+  num_workers: 12  # Workers para DataLoader
+  float32_matmul_precision: "high"  # Para RTX 5090
+
+# Validación
+validation:
+  require_rgb: true  # Requerir canales RGB en el archivo
+  min_points: 1000  # Mínimo de puntos para procesar
+  warn_no_normals: true  # Advertir si no tiene normales pre-calculadas
+
+# UI
+ui:
+  theme: "soft"  # Tema de Gradio: soft, glass, default
+  port: 7860
+  share: false  # Crear link público temporal
