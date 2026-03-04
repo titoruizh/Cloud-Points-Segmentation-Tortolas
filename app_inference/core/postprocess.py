@@ -770,22 +770,39 @@ class PostProcessor:
                 idx_ground_candidates = np.where(mask_ground_candidates)[0]
 
                 if len(idx_ground_candidates) > 0:
+                    t_sm = datetime.now()
                     CHUNK_SZ = 500_000
                     n_cands  = len(idx_ground_candidates)
                     all_valid_merges = []
+                    accumulated_count = 0
+                    _max_merge = max(500_000, len(idx_maq) * 5)
+                    num_blocks = (n_cands + CHUNK_SZ - 1) // CHUNK_SZ
 
                     mode_str = "GPU+CPU fallback" if _use_gpu else "CPU"
                     if progress_callback:
                         progress_callback(
                             f"   🔍 Smart Merge [{mode_str}]: {n_cands:,} candidatos "
-                            f"en {(n_cands + CHUNK_SZ - 1) // CHUNK_SZ} bloques"
+                            f"en {num_blocks} bloques (abort cap: {_max_merge:,})"
                         )
-                    print(f"   🔍 Smart Merge: {n_cands:,} candidatos", flush=True)
+                    print(f"   🔍 Smart Merge: {n_cands:,} candidatos, cap={_max_merge:,}", flush=True)
 
+                    early_aborted = False
+                    blocks_processed = 0
                     for chunk_start in range(0, n_cands, CHUNK_SZ):
+                        # Early abort: stop scanning if already over threshold
+                        if accumulated_count > _max_merge:
+                            early_aborted = True
+                            ea_msg = (f"   ⚡ Early abort: {accumulated_count:,} > {_max_merge:,} "
+                                      f"tras {blocks_processed}/{num_blocks} bloques")
+                            if progress_callback:
+                                progress_callback(ea_msg)
+                            print(ea_msg, flush=True)
+                            break
+
                         chunk_end    = min(chunk_start + CHUNK_SZ, n_cands)
                         chunk_idx_gc = idx_ground_candidates[chunk_start:chunk_end]
                         chunk_xyz    = xyz[chunk_idx_gc]
+                        blocks_processed += 1
 
                         used_gpu = False
                         if _use_gpu:
@@ -798,6 +815,7 @@ class PostProcessor:
                                 used_gpu = True
                                 if len(gpu_result) > 0:
                                     all_valid_merges.append(chunk_idx_gc[gpu_result])
+                                    accumulated_count += len(gpu_result)
 
                         if not used_gpu:
                             # Construir cKDTree la primera vez que hace falta
@@ -859,6 +877,9 @@ class PostProcessor:
                             valid_merges = candidates_to_check[final_mask]
                             if len(valid_merges) > 0:
                                 all_valid_merges.append(valid_merges)
+                                accumulated_count += len(valid_merges)
+
+                    sm_time = (datetime.now() - t_sm).total_seconds()
 
                     # Aplicar todos los merges de una vez
                     del maq_xyz_np
@@ -866,98 +887,139 @@ class PostProcessor:
                         del _tree_maq_cpu
                     if all_valid_merges:
                         all_valid = np.concatenate(all_valid_merges)
-                        # Cap: si se agregarían más de 5× la maquinaria original,
-                        # el merge no es confiable (suelo plano masivo confundido
-                        # con maquinaria). Abortar para no reventar DBSCAN.
-                        _max_merge = max(500_000, len(idx_maq) * 5)
-                        if len(all_valid) > _max_merge:
+                        if len(all_valid) > _max_merge or early_aborted:
+                            abort_msg = (
+                                f"   ⚠️ Smart Merge abortado: {len(all_valid):,} pts "
+                                f"exceden umbral ({_max_merge:,} = 5× maq original) "
+                                f"en {sm_time:.1f}s ({blocks_processed}/{num_blocks} bloques)"
+                            )
                             if progress_callback:
-                                progress_callback(
-                                    f"   ⚠️ Smart Merge abortado: {len(all_valid):,} pts "
-                                    f"exceden umbral ({_max_merge:,} = 5× maq original). "
-                                    f"Usando clasificación original sin merge."
-                                )
+                                progress_callback(abort_msg)
+                            print(abort_msg, flush=True)
                         else:
                             classification[all_valid] = 1
                             idx_maq = np.concatenate((idx_maq, all_valid))
+                            ok_msg = f"   ✨ Smart Merge: {len(all_valid):,} puntos unidos en {sm_time:.1f}s"
                             if progress_callback:
-                                progress_callback(f"   ✨ Smart Merge: {len(all_valid):,} puntos unidos")
+                                progress_callback(ok_msg)
+                            print(ok_msg, flush=True)
+                    else:
+                        sm_msg = f"   📊 Smart Merge: 0 candidatos válidos en {sm_time:.1f}s"
+                        if progress_callback:
+                            progress_callback(sm_msg)
+                        print(sm_msg, flush=True)
             
             # Clustering
+            t_dbscan = datetime.now()
             clustering = DBSCAN(eps=cfg.eps, min_samples=cfg.min_samples, n_jobs=-1)
             labels = clustering.fit_predict(xyz[idx_maq])
             n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
-            
+            dbscan_time = (datetime.now() - t_dbscan).total_seconds()
+
+            db_msg = f"   🧩 DBSCAN: {n_clusters} objetos en {dbscan_time:.1f}s ({len(idx_maq):,} pts)"
             if progress_callback:
-                progress_callback(f"   🔢 Objetos encontrados: {n_clusters}")
+                progress_callback(db_msg)
+            print(db_msg, flush=True)
                 
+            # ── Roof Fill: Global approach (ONE tree, ONE query) ──────────
+            t_roof = datetime.now()
             count_flipped = 0
-            unique_labels = [lbl for lbl in set(labels) if lbl != -1]
-            
-            def _process_techo_cluster(lbl):
-                cluster_mask = (labels == lbl)
-                cluster_points = xyz[idx_maq][cluster_mask]
-                
-                # Bounding box
-                min_x, min_y = np.min(cluster_points[:, :2], axis=0)
-                min_z = np.percentile(cluster_points[:, 2], 5)
-                max_x, max_y, max_z = np.max(cluster_points, axis=0)
-                
-                max_search_z = min_z + cfg.max_height
-                ground_z_threshold = min_z + cfg.z_buffer
-                
-                # Candidatos
-                candidate_mask_local = (
+            unique_labels = np.array([lbl for lbl in set(labels) if lbl != -1])
+
+            maq_points = xyz[idx_maq]
+            valid_cluster_mask = labels >= 0
+            maq_valid = maq_points[valid_cluster_mask]
+            maq_valid_labels = labels[valid_cluster_mask]
+            n_valid_maq = len(maq_valid)
+
+            if n_valid_maq > 0 and len(unique_labels) > 0:
+                # Step 1: Per-cluster Z ranges (vectorized)
+                t_zr = datetime.now()
+                sorted_ulabels = np.sort(unique_labels)
+                n_cl = len(sorted_ulabels)
+                cluster_z_lo = np.empty(n_cl, dtype=np.float32)
+                cluster_z_hi = np.empty(n_cl, dtype=np.float32)
+                for i, lbl in enumerate(sorted_ulabels):
+                    cz = maq_valid[maq_valid_labels == lbl, 2]
+                    min_z = float(np.percentile(cz, 5))
+                    cluster_z_lo[i] = min_z + cfg.z_buffer
+                    cluster_z_hi[i] = min_z + cfg.max_height
+
+                # Map each valid maq point → cluster index (0..n_cl-1)
+                maq_cluster_idx = np.searchsorted(sorted_ulabels, maq_valid_labels)
+                zr_time = (datetime.now() - t_zr).total_seconds()
+                print(f"   📊 Roof Z-ranges: {n_cl} clusters en {zr_time:.1f}s", flush=True)
+
+                # Step 2: Global XY+Z pre-filter for ground candidates (ONE pass over 76M)
+                t_filt = datetime.now()
+                global_z_lo = float(cluster_z_lo.min())
+                global_z_hi = float(cluster_z_hi.max())
+                # XY BBox of all machinery + proximity_radius margin
+                maq_xy_min = maq_valid[:, :2].min(axis=0)
+                maq_xy_max = maq_valid[:, :2].max(axis=0)
+                xy_margin = cfg.proximity_radius + cfg.padding
+                cand_mask = (
                     (classification == cfg.ground_class) &
-                    (xyz[:, 0] >= min_x - cfg.padding) & 
-                    (xyz[:, 0] <= max_x + cfg.padding) &
-                    (xyz[:, 1] >= min_y - cfg.padding) & 
-                    (xyz[:, 1] <= max_y + cfg.padding) &
-                    (xyz[:, 2] >= ground_z_threshold) & 
-                    (xyz[:, 2] <= max_search_z)
+                    (xyz[:, 0] >= maq_xy_min[0] - xy_margin) &
+                    (xyz[:, 0] <= maq_xy_max[0] + xy_margin) &
+                    (xyz[:, 1] >= maq_xy_min[1] - xy_margin) &
+                    (xyz[:, 1] <= maq_xy_max[1] + xy_margin) &
+                    (xyz[:, 2] >= global_z_lo) &
+                    (xyz[:, 2] <= global_z_hi)
                 )
-                
-                candidate_indices = np.where(candidate_mask_local)[0]
-                
-                if len(candidate_indices) > 0:
-                    # Refinamiento con KDTree 2D
-                    tree_2d = cKDTree(cluster_points[:, :2])
-                    candidates_xy = xyz[candidate_indices][:, :2]
-                    # workers=1 inside ThreadPoolExecutor to prevent thread explosion
-                    distances, _ = tree_2d.query(candidates_xy, k=1, workers=1)
-                    
-                    valid_mask_local = distances <= cfg.proximity_radius
-                    final_indices = candidate_indices[valid_mask_local]
-                    
-                    if len(final_indices) > 0:
-                        return final_indices
-                return np.array([], dtype=int)
+                cand_indices = np.where(cand_mask)[0]
+                filt_time = (datetime.now() - t_filt).total_seconds()
+                filt_pct = 100.0 * len(cand_indices) / max(1, int((classification == cfg.ground_class).sum()))
+                print(f"   📊 Roof filtro XY+Z: {len(cand_indices):,} candidatos ({filt_pct:.1f}% del suelo) en {filt_time:.1f}s", flush=True)
 
+                if len(cand_indices) > 0:
+                    # Step 3: ONE cKDTree for all valid machinery XY
+                    t_tree = datetime.now()
+                    tree_maq_2d = cKDTree(maq_valid[:, :2])
+                    tree_time = (datetime.now() - t_tree).total_seconds()
+                    print(f"   📊 Roof cKDTree: {n_valid_maq:,} maq en {tree_time:.1f}s", flush=True)
+
+                    # Step 4: ONE query for ALL candidates
+                    t_query = datetime.now()
+                    cand_xy = xyz[cand_indices, :2]
+                    dists_r, nn_idx_r = tree_maq_2d.query(cand_xy, k=1, workers=-1)
+                    query_time = (datetime.now() - t_query).total_seconds()
+                    print(f"   📊 Roof query: {len(cand_indices):,} pts en {query_time:.1f}s", flush=True)
+
+                    # Step 5: Filter by proximity_radius (2D distance ≤ 1.5m)
+                    prox_mask = dists_r <= cfg.proximity_radius
+                    del dists_r
+
+                    if np.any(prox_mask):
+                        close_cand_idx = cand_indices[prox_mask]
+                        close_nn = nn_idx_r[prox_mask]
+
+                        # Step 6: Per-cluster Z range verification
+                        matched_cluster = maq_cluster_idx[close_nn]
+                        cand_z = xyz[close_cand_idx, 2]
+                        z_lo_match = cluster_z_lo[matched_cluster]
+                        z_hi_match = cluster_z_hi[matched_cluster]
+                        z_valid = (cand_z >= z_lo_match) & (cand_z <= z_hi_match)
+
+                        final_flip = close_cand_idx[z_valid]
+                        count_flipped = len(final_flip)
+                        if count_flipped > 0:
+                            classification[final_flip] = 1
+
+                    del nn_idx_r, tree_maq_2d
+
+            roof_time = (datetime.now() - t_roof).total_seconds()
+            roof_msg = f"   ✅ Rellenados {count_flipped:,} puntos de techo en {roof_time:.1f}s"
             if progress_callback:
-                progress_callback(f"   ⚡ Procesando en paralelo {len(unique_labels)} objetos...")
-
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                results = list(executor.map(_process_techo_cluster, unique_labels))
-
-            indices_to_flip = []
-            for final_indices in results:
-                if len(final_indices) > 0:
-                    indices_to_flip.append(final_indices)
-                    count_flipped += len(final_indices)
-
-            if indices_to_flip:
-                all_indices_to_flip = np.concatenate(indices_to_flip)
-                classification[all_indices_to_flip] = 1
-                        
-            if progress_callback:
-                progress_callback(f"   ✅ Rellenados {count_flipped:,} puntos de techo")
+                progress_callback(roof_msg)
+            print(roof_msg, flush=True)
                 
             result.points_modified = count_flipped
             
             # Liberar arrays grandes antes de guardar
-            del xyz, indices_to_flip, results
+            del xyz, maq_points
             try:
-                del clustering, labels, tree_maq, neighbor_list
+                del clustering, labels
             except (NameError, UnboundLocalError):
                 pass
             gc.collect()
@@ -968,8 +1030,10 @@ class PostProcessor:
             result.success = True
             result.processing_time = (datetime.now() - start_time).total_seconds()
 
+            ft_msg = f"💾 FIX_TECHO completado en {result.processing_time:.1f}s: {os.path.basename(output_file)}"
             if progress_callback:
-                progress_callback(f"💾 Guardado: {os.path.basename(output_file)}")
+                progress_callback(ft_msg)
+            print(ft_msg, flush=True)
 
         except Exception as e:
             import traceback
